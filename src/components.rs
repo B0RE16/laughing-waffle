@@ -1,4 +1,4 @@
-//! ECS components (plain data). Phase 1-2 starter set; grows each phase.
+//! ECS components (plain data). Grows each phase.
 
 use macroquad::prelude::{Color, Vec2};
 
@@ -14,3 +14,9 @@ pub struct Renderable {
 
 /// Which faction an entity belongs to (faction id from the data definitions).
 pub struct Faction(pub String);
+
+/// Marker: entity is currently selected by the player.
+pub struct Selected;
+
+/// Marker: entity is following the active flow field toward the order goal.
+pub struct Moving;
