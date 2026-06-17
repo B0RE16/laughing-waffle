@@ -137,21 +137,20 @@ async fn main() {
                 let (miny, maxy) = (a.y.min(b.y), a.y.max(b.y));
                 let mut to_sel: Vec<Entity> = Vec::new();
                 if (maxx - minx) * (maxy - miny) < 64.0 {
-                    // Click: select nearest unit.
+                    // Click: select the unit whose sprite is actually under the cursor
+                    // (nearest center among those hit), so overlapping units don't mis-pick.
                     let click = b;
                     let mut best = None;
                     let mut bestd = f32::MAX;
-                    for (e, pos) in world.query::<&Position>().iter() {
+                    for (e, (pos, r)) in world.query::<(&Position, &Renderable)>().iter() {
                         let d = pos.0.distance(click);
-                        if d < bestd {
+                        if d <= r.size * 0.5 && d < bestd {
                             bestd = d;
                             best = Some(e);
                         }
                     }
                     if let Some(e) = best {
-                        if bestd < 28.0 {
-                            to_sel.push(e);
-                        }
+                        to_sel.push(e);
                     }
                 } else {
                     for (e, pos) in world.query::<&Position>().iter() {
