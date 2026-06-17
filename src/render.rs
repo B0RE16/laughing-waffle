@@ -1,9 +1,10 @@
-//! Rendering layer (macroquad). Phase 1: tilemap (view-culled) + entities + overlay,
+//! Rendering layer (macroquad). Tilemap (view-culled) + sprite entities + overlay,
 //! rendered through the game camera. `present` optionally targets an offscreen
 //! render target for autonomous screenshot capture.
 
 use macroquad::prelude::*;
 
+use crate::assets::Sprites;
 use crate::camera::GameCamera;
 use crate::components::{Position, Renderable};
 use crate::map::{self, TileMap};
@@ -18,6 +19,7 @@ pub fn present(
     map: &TileMap,
     camera: &GameCamera,
     sim: &Sim,
+    sprites: &Sprites,
     target: Option<RenderTarget>,
 ) {
     let sw = screen_width();
@@ -29,8 +31,8 @@ pub fn present(
     world_cam.render_target = target.clone();
     set_camera(&world_cam);
     clear_background(BG);
-    draw_tiles(map, view);
-    draw_entities(world);
+    draw_tiles(map, view, sprites);
+    draw_entities(world, sprites);
 
     // Overlay pass (screen-space).
     match &target {
@@ -45,7 +47,7 @@ pub fn present(
     set_default_camera();
 }
 
-fn draw_tiles(map: &TileMap, view: Rect) {
+fn draw_tiles(map: &TileMap, view: Rect, sprites: &Sprites) {
     let ts = map::TILE_SIZE;
     // Cull to the visible tile range so 256x256 stays cheap.
     let min_tx = ((view.x / ts).floor() as i32).max(0) as usize;
@@ -55,23 +57,37 @@ fn draw_tiles(map: &TileMap, view: Rect) {
 
     for ty in min_ty..max_ty {
         for tx in min_tx..max_tx {
-            let c = map::tile_color(map.get(tx, ty));
-            draw_rectangle(tx as f32 * ts, ty as f32 * ts, ts, ts, c);
+            let tex = sprites.tile(map.get(tx, ty));
+            draw_texture_ex(
+                tex,
+                tx as f32 * ts,
+                ty as f32 * ts,
+                WHITE,
+                DrawTextureParams { dest_size: Some(vec2(ts, ts)), ..Default::default() },
+            );
         }
     }
 }
 
-fn draw_entities(world: &hecs::World) {
-    let outline = Color::new(0.0, 0.0, 0.0, 0.5);
+fn draw_entities(world: &hecs::World, sprites: &Sprites) {
     for (_e, (pos, r)) in world.query::<(&Position, &Renderable)>().iter() {
-        draw_circle(pos.0.x, pos.0.y, r.radius, r.color);
-        draw_circle_lines(pos.0.x, pos.0.y, r.radius, 1.5, outline);
+        let tex = sprites.unit_texture(r.sprite);
+        draw_texture_ex(
+            tex,
+            pos.0.x - r.size * 0.5,
+            pos.0.y - r.size * 0.5,
+            r.tint,
+            DrawTextureParams {
+                dest_size: Some(vec2(r.size, r.size)),
+                ..Default::default()
+            },
+        );
     }
 }
 
 fn draw_overlay(world: &hecs::World, map: &TileMap, camera: &GameCamera, sim: &Sim, sh: f32) {
     draw_text(
-        "Phase 1 - tilemap + camera + ECS  (WASD/arrows pan, mouse wheel zoom)",
+        "Phase 2 - placeholder sprites  (WASD/arrows pan, mouse wheel zoom)",
         16.0,
         28.0,
         24.0,
