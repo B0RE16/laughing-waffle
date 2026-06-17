@@ -13,7 +13,7 @@ pub fn draw_scene(sim: &Sim) {
 
     draw_circle(cx, cy, 26.0, Color::from_rgba(120, 200, 160, 255));
     draw_text(
-        "Cold War RTS (working title) — Milestone 0 scaffold",
+        "Cold War RTS (working title) - Milestone 0 scaffold",
         24.0,
         48.0,
         30.0,

@@ -26,6 +26,11 @@ fn window_conf() -> Conf {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    // Optional capture mode for autonomous verification: render a few frames, save a
+    // PNG to the path in COLDWAR_CAPTURE, then exit. No effect during normal play.
+    let capture_path = std::env::var("COLDWAR_CAPTURE").ok();
+    let mut frame: u32 = 0;
+
     let mut sim = sim::Sim::new();
     let tick_dt = 1.0 / sim::TICK_RATE as f32;
     let mut accumulator = 0.0f32;
@@ -44,5 +49,24 @@ async fn main() {
         render::draw_debug_overlay(&sim);
 
         next_frame().await;
+
+        if let Some(path) = &capture_path {
+            frame += 1;
+            if frame >= 5 {
+                // Render once into an offscreen target — a reliable capture that does
+                // not depend on the OS window being visible/composited.
+                let (w, h) = (screen_width(), screen_height());
+                let rt = render_target(w as u32, h as u32);
+                let mut cam = Camera2D::from_display_rect(Rect::new(0.0, 0.0, w, h));
+                cam.render_target = Some(rt.clone());
+                set_camera(&cam);
+                clear_background(Color::from_rgba(18, 22, 28, 255));
+                render::draw_scene(&sim);
+                render::draw_debug_overlay(&sim);
+                set_default_camera();
+                rt.texture.get_texture_data().export_png(path);
+                break;
+            }
+        }
     }
 }
