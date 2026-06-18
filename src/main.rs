@@ -38,10 +38,6 @@ fn window_conf() -> Conf {
     }
 }
 
-fn screen_to_world(view: Rect, mp: Vec2, sw: f32, sh: f32) -> Vec2 {
-    vec2(view.x + mp.x / sw * view.w, view.y + mp.y / sh * view.h)
-}
-
 /// Spawn `count` units in a loose block near the map center, cycling unit types.
 fn spawn_army(world: &mut hecs::World, defs: &Definitions, sprites: &Sprites, map: &TileMap, count: usize) {
     let center = map.size_px() * 0.5;
@@ -123,6 +119,7 @@ async fn main() {
 
         cam.update(map_px);
         let view = cam.view_rect(sw, sh);
+        let cam2d = Camera2D::from_display_rect(view);
 
         // --- Selection (left mouse) ---
         if is_mouse_button_pressed(MouseButton::Left) {
@@ -131,8 +128,8 @@ async fn main() {
         if is_mouse_button_released(MouseButton::Left) {
             if let Some(start) = drag_start.take() {
                 clear_selection(&mut world);
-                let a = screen_to_world(view, start, sw, sh);
-                let b = screen_to_world(view, mp, sw, sh);
+                let a = cam2d.screen_to_world(start);
+                let b = cam2d.screen_to_world(mp);
                 let (minx, maxx) = (a.x.min(b.x), a.x.max(b.x));
                 let (miny, maxy) = (a.y.min(b.y), a.y.max(b.y));
                 let mut to_sel: Vec<Entity> = Vec::new();
@@ -167,7 +164,7 @@ async fn main() {
 
         // --- Move order (right mouse) ---
         if is_mouse_button_pressed(MouseButton::Right) {
-            let w = screen_to_world(view, mp, sw, sh);
+            let w = cam2d.screen_to_world(mp);
             let (tx, ty) = ((w.x / map::TILE_SIZE) as i32, (w.y / map::TILE_SIZE) as i32);
             if tx >= 0
                 && ty >= 0
