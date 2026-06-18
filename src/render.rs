@@ -37,7 +37,6 @@ pub fn present(
     draw_tiles(map, view, sprites);
     draw_selection_rings(world, sprites);
     draw_entities(world, sprites);
-    draw_cursor_marker(view);
 
     // Overlay pass (screen-space).
     match &target {
@@ -104,21 +103,11 @@ fn draw_entities(world: &hecs::World, sprites: &Sprites) {
     }
 }
 
-/// Crosshair at the world position the game maps the cursor to. If it doesn't sit
-/// under the real OS cursor, the mouse->world mapping is off (diagnostic aid).
-fn draw_cursor_marker(view: Rect) {
-    let (mx, my) = mouse_position();
-    let w = Camera2D::from_display_rect(view).screen_to_world(vec2(mx, my));
-    draw_circle_lines(w.x, w.y, 9.0, 2.0, MAGENTA);
-    draw_line(w.x - 16.0, w.y, w.x + 16.0, w.y, 1.5, MAGENTA);
-    draw_line(w.x, w.y - 16.0, w.x, w.y + 16.0, 1.5, MAGENTA);
-}
-
 fn draw_overlay(world: &hecs::World, map: &TileMap, camera: &GameCamera, sim: &Sim, tick_ms: f32, sh: f32) {
     let selected = world.query::<&crate::components::Selected>().iter().count();
     let moving = world.query::<&crate::components::Moving>().iter().count();
     draw_text(
-        "Phase 2 [build sel-fix3] - drag-select, right-click move; magenta cross = mapped cursor",
+        "Drag-select units, right-click to move  (WASD/arrows pan, mouse wheel zoom)",
         16.0,
         28.0,
         24.0,
