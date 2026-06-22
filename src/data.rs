@@ -13,6 +13,17 @@ pub struct Definitions {
     pub version: u32,
     pub factions: Vec<FactionDef>,
     pub units: Vec<UnitDef>,
+    pub buildings: Vec<BuildingDef>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct BuildingDef {
+    pub id: String,
+    pub name: String,
+    pub color: (u8, u8, u8),
+    /// Footprint size in tiles.
+    pub w: usize,
+    pub h: usize,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -30,6 +41,17 @@ pub struct UnitDef {
     pub sprite: String,
     pub color: (u8, u8, u8),
     pub radius: f32,
+    pub speed: f32,
+    pub turn_rate: f32,
+    pub hp: f32,
+    /// Weapon range in world px (0 = unarmed).
+    pub range: f32,
+    /// Damage per shot (0 = unarmed).
+    pub damage: f32,
+    /// Shots per second (0 = unarmed).
+    pub fire_rate: f32,
+    /// Turret rotation speed (rad/s). 0 = no turret (infantry fire direction = hull).
+    pub turret_turn_rate: f32,
 }
 
 /// Load and validate the bundled definitions.
